@@ -45,10 +45,11 @@ int main(void) {
             HPS_timer_LEDG ^= 0x01000000; // toggle the bit that controls LEDG
         }
     } 
+}
 
 
 /* setup HPS timer */
-void config_HPS_timer() {
+void config_HPS_timer(){
     volatile int * HPS_timer_ptr = (int *)HPS_TIMER0_BASE; // timer base address
     *(HPS_timer_ptr + 0x2) = 0; // write to control register to stop timer
     /* set the timer period */
