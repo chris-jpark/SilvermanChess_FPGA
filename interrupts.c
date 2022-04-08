@@ -12,18 +12,18 @@ void enable_A9_interrupts(void);
  *pressed
  * on the LED display.
  ********************************************************************************/
-int main(void) {
-    disable_A9_interrupts(); // disable interrupts in the A9 processor
-    set_A9_IRQ_stack();
-    config_GIC();
-    config_KEYs();
-// initialize the stack pointer for IRQ mode
-// configure the general interrupt controller
-// configure pushbutton KEYs to generate interrupts
-    enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
-    while (1)
-        ;
-}
+// int main(void) {
+//     disable_A9_interrupts(); // disable interrupts in the A9 processor
+//     set_A9_IRQ_stack();
+//     config_GIC();
+//     config_KEYs();
+// // initialize the stack pointer for IRQ mode
+// // configure the general interrupt controller
+// // configure pushbutton KEYs to generate interrupts
+//     enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
+//     while (1)
+//         ;
+// }
 
 /* setup the KEY interrupts in the FPGA */
 void config_KEYs() {
@@ -47,6 +47,9 @@ void __attribute__((interrupt)) __cs3_isr_irq(void) {
 
     if (interrupt_ID == 73) // check if interrupt is from the KEYs 
         pushbutton_ISR();
+    else if (interrupt_ID == 79)
+        config_PS2();
+
    else
         while (1); // if unexpected, then stay here
     // Write to the End of Interrupt Register (ICCEOIR)
