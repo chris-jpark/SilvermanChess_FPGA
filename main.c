@@ -15,7 +15,6 @@ struct pair {
 
 struct piece{
     int _id;
-    struct pair *next_moves;
     bool isWhite; 
 };
 
