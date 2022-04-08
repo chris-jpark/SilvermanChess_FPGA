@@ -20,6 +20,4 @@ struct piece{
 };
 
 struct piece basemap[4][4];
- 
-
 
