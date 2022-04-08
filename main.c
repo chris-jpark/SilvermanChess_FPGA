@@ -4,10 +4,15 @@
 #DEFINE QUEEN = 2
 #DEFINE KING = 3
 piece  basemap[4][4];
-
+ 
 struct piece{
     int _id;
-    int next_moves[10];
+    pair *next_moves;
+    bool isWhite; 
+}
 
+struct pair {
+    int first;
+    int second;
 }
 
