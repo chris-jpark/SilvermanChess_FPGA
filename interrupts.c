@@ -1,108 +1,95 @@
-#include "address_map_arm.h"
+void disable_A9_interrupts(void); 
 void set_A9_IRQ_stack(void);
 void config_GIC(void);
-void config_HPS_timer(void);
-void config_HPS_GPIO1(void);
-void config_interval_timer(void); void config_KEYs(void);
+void config_KEYs(void);
 void enable_A9_interrupts(void);
-/* key_dir and pattern are written by interrupt service routines; we have to
- * declare these as volatile to avoid the compiler caching their values in
-* registers */
-volatile int tick = 0; // set to 1 every time the HPS timer expires volatile int key_dir = 0;
-volatile int pattern = 0x0F0F0F0F; // pattern for LED lights
 /* ********************************************************************************
- * This program demonstrates use of interrupts with C code. It first starts
- * two timers: an HPS timer, and the FPGA interval timer. The program responds
- * to interrupts from these timers in addition to the pushbutton KEYs in the
-* FPGA.
+ * This program demonstrates use of interrupts with C code.  The program
+ *responds
+ * to interrupts from the pushbutton KEY port in the FPGA.
  *
- * The interrupt service routine for the HPS timer causes the main program to
- * flash the green light connected to the HPS GPIO1 port.
- *
- * The interrupt service routine for the interval timer displays a pattern on
- * the LED lights, and shifts this pattern either left or right. The shifting
- * direction is reversed when KEY[1] is pressed
-********************************************************************************/
+ * The interrupt service routine for the KEYs indicates which KEY has been
+ *pressed
+ * on the LED display.
+ ********************************************************************************/
 int main(void) {
-    volatile int * HPS_GPIO1_ptr = (int *)HPS_GPIO1_BASE; // GPIO1 base address 
-    volatile int HPS_timer_LEDG = 0x01000000; // value to turn on the HPS green light LEDG
+    disable_A9_interrupts(); // disable interrupts in the A9 processor
     set_A9_IRQ_stack();
     config_GIC();
-    config_HPS_timer();
-    config_HPS_GPIO1();
-    config_interval_timer(); // configure Altera interval timer to generate
-    // initialize the stack pointer for IRQ mode
-    // configure the general interrupt controller
-    // configure the HPS timer
-    // configure the HPS GPIO1 interface
-    // interrupts
-    config_KEYs(); // configure pushbutton KEYs to generate interrupts
-    enable_A9_interrupts(); // enable interrupts
-    while (1) {
-        if (tick) {
-            tick = 0;
-            *HPS_GPIO1_ptr = HPS_timer_LEDG; // turn on/off the green light  LEDG 
-            HPS_timer_LEDG ^= 0x01000000; // toggle the bit that controls LEDG
-        }
-    } 
+    config_KEYs();
+// initialize the stack pointer for IRQ mode
+// configure the general interrupt controller
+// configure pushbutton KEYs to generate interrupts
+    enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
+    while (1)
+        ;
 }
 
-
-/* setup HPS timer */
-void config_HPS_timer(){
-    volatile int * HPS_timer_ptr = (int *)HPS_TIMER0_BASE; // timer base address
-    *(HPS_timer_ptr + 0x2) = 0; // write to control register to stop timer
-    /* set the timer period */
-    int counter = 100000000; //
-     period = 1/(100 MHz) x (100 x 10^6) = 1 sec *(HPS_timer_ptr) = counter; // write to timer load register
-    /* write to control register to start timer, with interrupts */
-    *(HPS_timer_ptr + 2) = 0b011; // int mask = 0, mode = 1, enable = 1 
-}
-
-
-    /* setup HPS GPIO1. The GPIO1 port has one green light (LEDG) and one pushbutton
-    * KEY connected for the DE1-SoC Computer. The KEY is connected to GPIO1[25],
-    * and is not used here. The green LED is connected to GPIO1[24]. */
-void config_HPS_GPIO1() {
-    volatile int * HPS_GPIO1_ptr = (int *)HPS_GPIO1_BASE; // GPIO1 base address
-    *(HPS_GPIO1_ptr + 0x1) = 0x01000000; // write to the data direction register to set
-    // bit 24 (LEDG) to be an output
-    // Other possible actions include setting up GPIO1 to use the KEY, including
-    // setting the debounce option and causing the KEY to generate an interrupt.
-    // We do not use the KEY in this example.
-}
-
-
-/* setup the interval timer interrupts in the FPGA */
-void config_interval_timer() {
-    volatile int * interval_timer_ptr = (int *)TIMER_BASE; // interal timer base address
-    /* set the interval timer period for scrolling the HEX displays */
-    int counter = 5000000; // 1/(100 MHz) x 5x10^6 = 50 msec *(interval_timer_ptr + 0x2) = (counter & 0xFFFF);
-    *(interval_timer_ptr + 0x3) = (counter >> 16) & 0xFFFF;
-    /* start interval timer, enable its interrupts */
-    *(interval_timer_ptr + 1) = 0x7; // STOP = 0, START = 1, CONT = 1, ITO = 1 }
-    /* setup the KEY interrupts in the FPGA */
-}
-
-
+/* setup the KEY interrupts in the FPGA */
 void config_KEYs() {
-    volatile int * KEY_ptr = (int *)KEY_BASE; // pushbutton KEY address
-
-    *(KEY_ptr + 2) = 0x3; // enable interrupts for KEY[1] 
+    volatile int * KEY_ptr = (int *) 0xFF200050; // pushbutton KEY base address
+ 
+    *(KEY_ptr + 2) = 0xF; // enable interrupts for the two KEYs }
 }
-/*
- * Initialize the banked stack pointer register for IRQ mode
+/* This file:
+ * 1. defines exception vectors for the A9 processor
+ * 2. provides code that sets the IRQ mode stack, and that dis/enables
+ * interrupts
+ * 3. provides code that initializes the generic interrupt controller
 */
+void pushbutton_ISR(void);
+void config_interrupt(int, int);
+// Define the IRQ exception handler
+void __attribute__((interrupt)) __cs3_isr_irq(void) {
+// Read the ICCIAR from the CPU Interface in the GIC 
+    int interrupt_ID = *((int *)0xFFFEC10C);
 
-void set_A9_IRQ_stack(void) {
+    if (interrupt_ID == 73) // check if interrupt is from the KEYs 
+        pushbutton_ISR();
+   else
+        while (1); // if unexpected, then stay here
+    // Write to the End of Interrupt Register (ICCEOIR)
+    *((int *)0xFFFEC110) = interrupt_ID; 
+}
+
+// Define the remaining exception handlers
+void __attribute__((interrupt)) __cs3_reset(void) { 
+    while (1);
+}
+void __attribute__((interrupt)) __cs3_isr_undef(void) { 
+    while (1);
+}
+void __attribute__((interrupt)) __cs3_isr_swi(void) { 
+    while (1);
+}
+void __attribute__((interrupt)) __cs3_isr_pabort(void) { 
+    while (1);
+}
+void __attribute__((interrupt)) __cs3_isr_dabort(void) { 
+    while (1);
+}
+void __attribute__((interrupt)) __cs3_isr_fiq(void) { 
+    while (1);
+}
+
+/*
+ * Turn off interrupts in the ARM processor
+*/
+void disable_A9_interrupts(void) {
+    int status = 0b11010011;
+    asm("msr cpsr, %[ps]" : : [ps] "r"(status));
+}
+
+void set_A9_IRQ_stack(void) { 
     int stack, mode;
-    stack = A9_ONCHIP_END - 7; // top of A9 onchip memory, aligned to 8 bytes /* change processor to IRQ mode with interrupts disabled */
-    mode = INT_DISABLE | IRQ_MODE;
+    stack = 0xFFFFFFFF - 7; // top of A9 onchip memory, aligned to 8 bytes 
+    /* change processor to IRQ mode with interrupts disabled */
+    mode = 0b11010010;
     asm("msr cpsr, %[ps]" : : [ps] "r"(mode));
     /* set banked stack pointer */
     asm("mov sp, %[ps]" : : [ps] "r"(stack));
     /* go back to SVC mode before executing subroutine return! */
-    mode = INT_DISABLE | SVC_MODE;
+    mode = 0b11010011;
     asm("msr cpsr, %[ps]" : : [ps] "r"(mode));
 }
 
@@ -111,36 +98,63 @@ void set_A9_IRQ_stack(void) {
  * Turn on interrupts in the ARM processor
 */
 void enable_A9_interrupts(void) {
-    int status = SVC_MODE | INT_ENABLE;
+    int status = 0b01010011;
     asm("msr cpsr, %[ps]" : : [ps] "r"(status));
 }
-
-
-
 /*
  * Configure the Generic Interrupt Controller (GIC)
 */
 void config_GIC(void) {
-    int address; // used to calculate register addresses
-
-    /* configure the HPS timer interrupt */
-    *((int *)0xFFFED8C4) = 0x01000000; *((int *)0xFFFED118) = 0x00000080;
-    /* configure the FPGA interval timer and KEYs interrupts */
-    *((int *)0xFFFED848) = 0x00000101; *((int *)0xFFFED108) = 0x00000300;
+    config_interrupt (73, 1); // configure the FPGA KEYs interrupt (73)
     // Set Interrupt Priority Mask Register (ICCPMR). Enable interrupts of all // priorities
-    address = MPCORE_GIC_CPUIF + ICCPMR;
-    *((int *)address) = 0xFFFF;
-
-
-
+    *((int *) 0xFFFEC104) = 0xFFFF;
     // Set CPU Interface Control Register (ICCICR). Enable signaling of // interrupts
-    address = MPCORE_GIC_CPUIF + ICCICR;
+    *((int *) 0xFFFEC100) = 1;
+// Configure the Distributor Control Register (ICDDCR) to send pending // interrupts to CPUs
+    *((int *) 0xFFFED000) = 1;
+}
 
-    *((int *)address) = ENABLE;
+/*
+ * Configure Set Enable Registers (ICDISERn) and Interrupt Processor Target
+ * Registers (ICDIPTRn). The default (reset) values are used for other registers
+ * in the GIC.
+*/
+void config_interrupt(int N, int CPU_target) { int reg_offset, index, value, address;
+    /* Configure the Interrupt Set-Enable Registers (ICDISERn).
+     * reg_offset = (integer_div(N / 32) * 4
+     * value = 1 << (N mod 32) */
+    reg_offset = (N >> 3) & 0xFFFFFFFC;
+    index = N & 0x1F;
+    value = 0x1 << index; 
+    address = 0xFFED100 + reg_offset; 
+    *(int *) address != value; 
+    /* Configure the Interrupt Processor Targets Register (ICDIPTRn)
+     * reg_offset = integer_div(N / 4) * 4
+     * index = N mod 4 */
+    reg_offset = (N & 0xFFFFFFFC);
+    index = N & 0x3;
+    address = 0xFFFED800 + reg_offset + index;
+    /* Now that we know the register address and value, write to (only) the
+        * appropriate byte */
+    *(char *)address = (char)CPU_target; 
+}
 
+void pushbutton_ISR(void){
+    volatile int * KEY_ptr = (int * ) 0xFF200050;
 
-    // Configure the Distributor Control Register (ICDDCR) to send pending // interrupts to CPUs
-    address = MPCORE_GIC_DIST + ICDDCR;
-    *((int *)address) = ENABLE;
+    volatile int * HEX3_HEX0_ptr = (int*) 0xFF200020;
+    int press, HEX_bits; 
+    press = * (KEY_ptr + 3);
+    *(KEY_ptr + 3) = press; 
 
+    if (press & 0x1) //KEY0;
+        HEX_bits = 0b00111111;
+    else if (press & 0x2)
+        HEX_bits = 0b00000110;
+    else if (press & 0x4)
+        HEX_bits = 0b01011011;
+    else 
+        HEX_bits   = 0b01001111; 
+    *HEX3_HEX0_ptr = HEX_bits;
+    return;
 }
