@@ -1,18 +1,25 @@
 #include "address_map_arm.h"
-#DEFINE PAWN = 0
-#DEFINE ROOK = 1
-#DEFINE QUEEN = 2
-#DEFINE KING = 3
-piece  basemap[4][4];
- 
-struct piece{
-    int _id;
-    pair *next_moves;
-    bool isWhite; 
-}
+#include "images.h"
+#include <stdbool.h>
+
+#define PAWN = 0
+#define ROOK = 1
+#define QUEEN = 2
+#define KING = 3
+
 
 struct pair {
     int first;
     int second;
-}
+};
+
+struct piece{
+    int _id;
+    struct pair *next_moves;
+    bool isWhite; 
+};
+
+struct piece basemap[4][4];
+ 
+
 
