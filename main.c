@@ -10,3 +10,4 @@ struct piece{
     int next_moves[10];
 
 }
+
