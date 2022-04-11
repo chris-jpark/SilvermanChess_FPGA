@@ -1,6 +1,8 @@
 #ifndef tools.h
 #define tools.h 
 
+#include "stdbool.h"
+
 #define PAWN = 0
 #define ROOK = 1
 #define QUEEN = 2
@@ -12,16 +14,25 @@
 #define RESOLUTION_X 320
 #define RESOLUTION_Y 240
 
+#define BOARD_DIMENSION 4
+#define OFFSET 40
+
+
 volatile int pixel_buffer_start; // global variable
 
-struct pair {
-    int first;
-    int second;
-};
+typedef struct Coordinates{
+    int x;
+    int y;
+} Coordinates;
 
-struct piece{
+
+typedef struct Piece{
     int _id;
     bool isWhite; 
-};
+    bool isEmpty;
+    struct pair; 
+} Piece;
+
+Piece getPiece(Coordinates coords, const Piece **gameBoard);
 
 #endif

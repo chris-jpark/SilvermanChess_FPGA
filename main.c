@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 
-struct piece basemap[4][4];
+Piece basemap[4][4];
 
 
 
