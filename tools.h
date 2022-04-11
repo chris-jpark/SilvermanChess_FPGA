@@ -1,6 +1,8 @@
 #ifndef TOOLS_H
 #define TOOLS_H 
 
+#include <stdbool.h>
+
 #define PAWN = 0
 #define ROOK = 1
 #define QUEEN = 2
@@ -11,20 +13,26 @@
 /* Screen size. */
 #define RESOLUTION_X 320
 #define RESOLUTION_Y 240
+#define BOARD_DIMENSION 4
+#define OFFSET 40
 
-#include <stdbool.h>
 
 volatile int pixel_buffer_start; // global variable
 
-struct pair {
-    int first;
-    int second;
-};
+typedef struct Coordinates{
+    int x;
+    int y;
+} Coordinates;
 
-struct piece{
+
+typedef struct Piece{
     int _id;
     bool isWhite; 
     uint16_t image[60][60];
-};
+    bool isEmpty;
+    Coordinates coords; 
+} Piece;
+
+Piece getPiece(Coordinates coords, const Piece **gameBoard);
 
 #endif

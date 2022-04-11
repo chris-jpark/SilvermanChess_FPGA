@@ -2,8 +2,7 @@
 #include "tools.h"
 #include "images.c"
 
-struct piece basemap[4][4];
-volatile int pixel_buffer_start; // global variable
+Piece basemap[4][4];
 
  void plot_pixel(int x, int y, short int line_color)
 {

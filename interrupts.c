@@ -1,8 +1,12 @@
+#include "address_map_arm.h"
+
 void disable_A9_interrupts(void); 
 void set_A9_IRQ_stack(void);
 void config_GIC(void);
 void config_KEYs(void);
+void config_KEYs(void);
 void enable_A9_interrupts(void);
+
 /* ********************************************************************************
  * This program demonstrates use of interrupts with C code.  The program
  *responds
@@ -22,7 +26,7 @@ void enable_A9_interrupts(void);
 // // configure pushbutton KEYs to generate interrupts
 //     enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
 //     while (1)
-//         ;
+//         continue;
 // }
 
 /* setup the KEY interrupts in the FPGA */
@@ -31,6 +35,14 @@ void config_KEYs() {
  
     *(KEY_ptr + 2) = 0xF; // enable interrupts for the two KEYs }
 }
+
+void config_PS2() {
+    volatile int * PS2_ptr = (int*) PS2_BASE;
+    *(PS2_ptr + 1) = 0x1;
+}
+
+
+
 /* This file:
  * 1. defines exception vectors for the A9 processor
  * 2. provides code that sets the IRQ mode stack, and that dis/enables
@@ -162,3 +174,10 @@ void pushbutton_ISR(void){
     *HEX3_HEX0_ptr = HEX_bits;
     return;
 }
+
+void mouse_ISR(void){
+    volatile int * KEY_ptr = (int * ) PS2_BASE;
+    
+    return;
+}
+
