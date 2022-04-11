@@ -1,14 +1,11 @@
 #include "address_map_arm.h"
-#include "images.h"
 #include "tools.h"
-#include <stdbool.h>
-
+#include "images.c"
 
 struct piece basemap[4][4];
+volatile int pixel_buffer_start; // global variable
 
-
-
-void plot_pixel(int x, int y, short int line_color)
+ void plot_pixel(int x, int y, short int line_color)
 {
     *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
@@ -39,6 +36,14 @@ void wait_for_vsync(){
   }
 }
 
+void draw_board(){
+    for(int x  = 0; x < 320; x++ ){
+        for(int y = 0; y < 240; y++){
+            plot_pixel(x, y, board[y][x]); 
+        }
+    }
+}
+
 main(){
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
      *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the
@@ -55,6 +60,10 @@ main(){
 
     while(1){
         //insert what to draw on the screen here
+		clear_screen();
+        draw_board();
+		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
     }
 }
 
