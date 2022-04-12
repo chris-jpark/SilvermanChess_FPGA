@@ -48,25 +48,38 @@ void draw_board(){
     }
 }
 
+
 void draw_piece(Piece currPiece, int a, int b){
     for(int x  = 0; x < 60; x++){
         for(int y = 0; y < 60; y++){
-            if(strcmp(currPiece.name, "wP")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wPawn);
-            else if(strcmp(currPiece.name, "wR")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wRook);
-            else if(strcmp(currPiece.name, "wQ")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wQueen);
-            else if(strcmp(currPiece.name, "wK")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wKing);
-            else if(strcmp(currPiece.name, "bP")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bPawn);
-            else if(strcmp(currPiece.name, "bR")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bRook);
-            else if(strcmp(currPiece.name, "bQ")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bQueen);
-            else if(strcmp(currPiece.name, "bK")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bKing);
+            if(strcmp(currPiece.name, "wP")==0) {
+                if(wPawn[x][y] != 65535)
+                    plot_pixel(a*60+y+OFFSET, b*60+x, wPawn[x][y]);
+            }
+            else if(strcmp(currPiece.name, "wR")==0) {
+                if(wRook[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wRook[x][y]);
+            }
+            else if(strcmp(currPiece.name, "wQ")==0) {
+                if(wQueen[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wQueen[x][y]);
+            }else if(strcmp(currPiece.name, "wK")==0) {
+                if(wKing[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wKing[x][y]);
+            }else if(strcmp(currPiece.name, "bP")==0) {
+                if(bPawn[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bPawn[x][y]);
+            }else if(strcmp(currPiece.name, "bR")==0) {
+                if(bRook[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bRook[x][y]);
+            }else if(strcmp(currPiece.name, "bQ")==0) {
+                if(bQueen[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bQueen[x][y]);
+            }else if(strcmp(currPiece.name, "bK")==0) {
+                if(bKing[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bKing[x][y]);
+            }
+            
         }
     }
 }
