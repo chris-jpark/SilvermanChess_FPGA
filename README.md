@@ -14,3 +14,5 @@ Written using C language, with inline ARM assembly for accessing interrupts.
 Takes user input through mouse clicks, displays board onto the 320 X 240 VGA Output. 
 
 Must be Compiled using the Intel Quartus Prime compiler. 
+
+![alt text](https://github.com/dividividib/SilvermanChess_FPGA/blob/main/preview.png?raw=false)
