@@ -16,17 +16,17 @@ void enable_A9_interrupts(void);
  *pressed
  * on the LED display.
  ********************************************************************************/
-int main(void) {
-    disable_A9_interrupts(); // disable interrupts in the A9 processor
-    set_A9_IRQ_stack();
-    config_GIC();
-    config_KEYs();
-// initialize the stack pointer for IRQ mode
-// configure the general interrupt controller
-// configure pushbutton KEYs to generate interrupts
-    enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
-    while (1)
-        continue;
+// int main(void) {
+//     disable_A9_interrupts(); // disable interrupts in the A9 processor
+//     set_A9_IRQ_stack();
+//     config_GIC();
+//     config_KEYs();
+// // initialize the stack pointer for IRQ mode
+// // configure the general interrupt controller
+// // configure pushbutton KEYs to generate interrupts
+//     enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
+//     while (1)
+//         continue;
 }
 
 /* setup the KEY interrupts in the FPGA */
@@ -59,6 +59,9 @@ void __attribute__((interrupt)) __cs3_isr_irq(void) {
 
     if (interrupt_ID == 73) // check if interrupt is from the KEYs 
         pushbutton_ISR();
+    else if (interrupt_ID == 79)
+        config_PS2();
+
    else
         while (1); // if unexpected, then stay here
     // Write to the End of Interrupt Register (ICCEOIR)
@@ -162,11 +165,11 @@ void pushbutton_ISR(void){
 
     if (press & 0x1) //KEY0;
         HEX_bits = 0b00111111;
-    else if (press & 0x2)
+    else if (press & 0x2) //KEY1
         HEX_bits = 0b00000110;
-    else if (press & 0x4)
+    else if (press & 0x4) //KEY2
         HEX_bits = 0b01011011;
-    else 
+    else //press & 0x8, which is key3
         HEX_bits   = 0b01001111; 
     *HEX3_HEX0_ptr = HEX_bits;
     return;

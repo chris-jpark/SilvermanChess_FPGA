@@ -1,4 +1,105 @@
+/* This files provides address values that exist in the system */
+
+#define BOARD                 "DE1-SoC"
+
+/* Memory */
+#define DDR_BASE              0x00000000
+#define DDR_END               0x3FFFFFFF
+#define A9_ONCHIP_BASE        0xFFFF0000
+#define A9_ONCHIP_END         0xFFFFFFFF
+#define SDRAM_BASE            0xC0000000
+#define SDRAM_END             0xC3FFFFFF
+#define FPGA_ONCHIP_BASE      0xC8000000
+#define FPGA_ONCHIP_END       0xC803FFFF
+#define FPGA_CHAR_BASE        0xC9000000
+#define FPGA_CHAR_END         0xC9001FFF
+
+/* Cyclone V FPGA devices */
+#define LEDR_BASE             0xFF200000
+#define HEX3_HEX0_BASE        0xFF200020
+#define HEX5_HEX4_BASE        0xFF200030
+#define SW_BASE               0xFF200040
+#define KEY_BASE              0xFF200050
+#define JP1_BASE              0xFF200060
+#define JP2_BASE              0xFF200070
+#define PS2_BASE              0xFF200100
+#define PS2_DUAL_BASE         0xFF200108
+#define JTAG_UART_BASE        0xFF201000
+#define JTAG_UART_2_BASE      0xFF201008
+#define IrDA_BASE             0xFF201020
+#define TIMER_BASE            0xFF202000
+#define AV_CONFIG_BASE        0xFF203000
+#define PIXEL_BUF_CTRL_BASE   0xFF203020
+#define CHAR_BUF_CTRL_BASE    0xFF203030
+#define AUDIO_BASE            0xFF203040
+#define VIDEO_IN_BASE         0xFF203060
+#define ADC_BASE              0xFF204000
+
+/* Cyclone V HPS devices */
+#define HPS_GPIO1_BASE        0xFF709000
+#define HPS_TIMER0_BASE       0xFFC08000
+#define HPS_TIMER1_BASE       0xFFC09000
+#define HPS_TIMER2_BASE       0xFFD00000
+#define HPS_TIMER3_BASE       0xFFD01000
+#define FPGA_BRIDGE           0xFFD0501C
+
+/* ARM A9 MPCORE devices */
+#define   PERIPH_BASE         0xFFFEC000    // base address of peripheral devices
+#define   MPCORE_PRIV_TIMER   0xFFFEC600    // PERIPH_BASE + 0x0600
+
+/* Interrupt controller (GIC) CPU interface(s) */
+#define MPCORE_GIC_CPUIF      0xFFFEC100    // PERIPH_BASE + 0x100
+#define ICCICR                0x00          // offset to CPU interface control reg
+#define ICCPMR                0x04          // offset to interrupt priority mask reg
+#define ICCIAR                0x0C          // offset to interrupt acknowledge reg
+#define ICCEOIR               0x10          // offset to end of interrupt reg
+/* Interrupt controller (GIC) distributor interface(s) */
+#define MPCORE_GIC_DIST       0xFFFED000    // PERIPH_BASE + 0x1000
+#define ICDDCR                0x00          // offset to distributor control reg
+#define ICDISER               0x100         // offset to interrupt set-enable regs
+#define ICDICER               0x180         // offset to interrupt clear-enable regs
+#define ICDIPTR               0x800         // offset to interrupt processor targets regs
+#define ICDICFR               0xC00         // offset to interrupt configuration regs
+
+#define PAWN = 0
+#define ROOK = 1
+#define QUEEN = 2
+#define KING = 3
+
+#define ABS(x) (((x) > 0) ? (x) : -(x))
+
+/* Screen size. */
+#define RESOLUTION_X 320
+#define RESOLUTION_Y 240
+#define BOARD_DIMENSION 4
+#define OFFSET 40
+
+#include <stdbool.h>
 #include <inttypes.h>
+#include <string.h>
+
+
+volatile int pixel_buffer_start; // global variable
+
+struct pair {
+    int first;
+    int second;
+};
+
+typedef struct Coordinates{
+    int x;
+    int y;
+} Coordinates;
+
+typedef struct Piece{
+    int _id;
+    bool isWhite; 
+    char name[2];
+    bool isEmpty;
+    Coordinates coords; 
+} Piece;
+
+Piece basemap[4][4];
 
 
 const uint16_t board[240][320] = {
@@ -752,4 +853,171 @@ const uint16_t bPawn[60][60] = {
 	{65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535},
 
 };
+
+
+
+void plot_pixel(int x, int y, short int line_color)
+{
+    *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
+}
+
+void swap(int* x, int* y){
+    int temp = *x;
+    *x= *y;
+    *y = temp;
+}
+
+void clear_screen(){
+    for (int x = 0; x < 320; x++) {
+        for (int y = 0; y < 240; y++) {
+            plot_pixel (x, y, 0);
+        }
+    }
+}
+
+void wait_for_vsync(){
+  volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+  register int status;
+
+  *pixel_ctrl_ptr = 1;
+
+  status = *(pixel_ctrl_ptr + 3);
+  while ((status &0x01)!= 0){
+    status = *(pixel_ctrl_ptr + 3);
+  }
+}
+
+void draw_board(){
+    for(int x  = 0; x < 320; x++ ){
+        for(int y = 0; y < 240; y++){
+            plot_pixel(x, y, board[y][x]); 
+        }
+    }
+}
+
+void draw_piece(Piece currPiece, int a, int b){
+    for(int x  = 0; x < 60; x++){
+        for(int y = 0; y < 60; y++){
+            if(strcmp(currPiece.name, "wP")==0) {
+                if(wPawn[x][y] != 65535)
+                    plot_pixel(a*60+y+OFFSET, b*60+x, wPawn[x][y]);
+            }
+            else if(strcmp(currPiece.name, "wR")==0) {
+                if(wRook[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wRook[x][y]);
+            }
+            else if(strcmp(currPiece.name, "wQ")==0) {
+                if(wQueen[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wQueen[x][y]);
+            }else if(strcmp(currPiece.name, "wK")==0) {
+                if(wKing[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, wKing[x][y]);
+            }else if(strcmp(currPiece.name, "bP")==0) {
+                if(bPawn[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bPawn[x][y]);
+            }else if(strcmp(currPiece.name, "bR")==0) {
+                if(bRook[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bRook[x][y]);
+            }else if(strcmp(currPiece.name, "bQ")==0) {
+                if(bQueen[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bQueen[x][y]);
+            }else if(strcmp(currPiece.name, "bK")==0) {
+                if(bKing[x][y] != 65535)
+                plot_pixel(a*60+y+OFFSET, b*60+x, bKing[x][y]);
+            }
+            
+        }
+    }
+}
+
+Piece getPiece(Coordinates coords, const Piece **basemap) {
+    float gridParam = RESOLUTION_Y/BOARD_DIMENSION;
+
+    Piece invalidClick;
+
+    if((coords.x - OFFSET)> RESOLUTION_X || coords.y > RESOLUTION_Y || (coords.x - OFFSET) < 0 || coords.y < 0) {
+        invalidClick.isEmpty = true;
+        return invalidClick;
+    }
+
+    int xIndex = coords.x/gridParam;
+    int yIndex = coords.y/gridParam;
+
+    return basemap[xIndex][yIndex];
+
+}
+
+void makeBoard() {
+    for(int col = 0; col < BOARD_DIMENSION; col++) {
+        for(int row = 0; row < BOARD_DIMENSION; row++) {
+            if(row < 2) {
+                basemap[col][row].isWhite = false;
+                //pawns
+                if(row == 1) {
+                    basemap[col][row]._id = 0; 
+                    strcpy(basemap[col][row].name, "bP"); //strcpy( a, "foo" );
+                } else {
+                    basemap[col][row]._id =  col + 1;
+                    if(col == 0 || col == 3){
+                        strcpy(basemap[col][row].name ,"bR"); 
+                    }
+                    else if(col == 1){   
+                        strcpy(basemap[col][row].name ,"bQ"); 
+                    }
+                    else if(col == 2){ 
+                        strcpy(basemap[col][row].name ,"bK"); 
+                    }
+                }
+            //if row >= 2
+            } else {
+                basemap[col][row].isWhite = true;
+                //pawns
+                if(row == 2) {
+                    basemap[col][row]._id = 0; 
+                    strcpy(basemap[col][row].name ,"wP"); 
+                } else {
+                    basemap[col][row]._id = col + 1;
+                    if(col == 0 || col == 3)
+                        strcpy(basemap[col][row].name ,"wR"); 
+                    else if(col == 1)
+                        strcpy(basemap[col][row].name ,"wQ"); 
+                    else if(col == 2)
+                        strcpy(basemap[col][row].name ,"wK"); 
+                }
+            }
+            Coordinates currCoords = {col, row};
+            basemap[col][row].coords = currCoords;
+            basemap[col][row].isEmpty = false; 
+        }
+    }
+}
+int main(){
+    volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+     *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the
+                                        // back buffer
+    /* now, swap the front/back buffers, to set the front buffer location */
+    wait_for_vsync();
+    /* initialize a pointer to the pixel buffer, used by drawing functions */
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    clear_screen(); // pixel_buffer_start points to the pixel buffer
+    /* set back pixel buffer to start of SDRAM memory */
+    *(pixel_ctrl_ptr + 1) = 0xC0000000;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+    clear_screen(); // pixel_buffer_start points to the pixel buffer
+	makeBoard(basemap);
+
+    while(1){
+        //insert what to draw on the screen here
+		clear_screen();
+        draw_board();
+		for(int x = 0; x < 4; x++){
+            for(int y = 0; y < 4; y++){
+            draw_piece((basemap[x][y]), x, y); 
+            }
+        }
+		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+    }
+	return 0;
+}
 
