@@ -346,6 +346,7 @@ const uint16_t board[240][320] = {
 
 };
 
+
 const uint16_t wKing[60][60] = {
 	{65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535},
 	{65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535},
@@ -902,21 +903,21 @@ void draw_piece(Piece currPiece, int a, int b){
     for(int x  = 0; x < 60; x++){
         for(int y = 0; y < 60; y++){
             if(strcmp(currPiece.name, "wP")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wPawn[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, wPawn[x][y]);
             else if(strcmp(currPiece.name, "wR")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wRook[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, wRook[x][y]);
             else if(strcmp(currPiece.name, "wQ")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wQueen[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, wQueen[x][y]);
             else if(strcmp(currPiece.name, "wK")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, wKing[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, wKing[x][y]);
             else if(strcmp(currPiece.name, "bP")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bPawn[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, bPawn[x][y]);
             else if(strcmp(currPiece.name, "bR")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bRook[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, bRook[x][y]);
             else if(strcmp(currPiece.name, "bQ")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bQueen[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, bQueen[x][y]);
             else if(strcmp(currPiece.name, "bK")==0) 
-                plot_pixel(a*60+x, b*60+OFFSET+y, bKing[x][y]);
+                plot_pixel(a*60+y+OFFSET, b*60+x, bKing[x][y]);
 			else
 				plot_pixel(a*60+x, b*60+OFFSET+y, wKing[x][y]);
         }
@@ -941,46 +942,46 @@ Piece getPiece(Coordinates coords, const Piece **basemap) {
 }
 
 void makeBoard() {
-    for(int row = 0; row < BOARD_DIMENSION; row++) {
-        for(int col = 0; col < BOARD_DIMENSION; col++) {
+    for(int col = 0; col < BOARD_DIMENSION; col++) {
+        for(int row = 0; row < BOARD_DIMENSION; row++) {
             if(row < 2) {
-                basemap[row][col].isWhite = false;
+                basemap[col][row].isWhite = false;
                 //pawns
                 if(row == 1) {
-                    basemap[row][col]._id = 0; 
-                    strcpy(basemap[row][col].name, "bP"); //strcpy( a, "foo" );
+                    basemap[col][row]._id = 0; 
+                    strcpy(basemap[col][row].name, "bP"); //strcpy( a, "foo" );
                 } else {
-                    basemap[row][col]._id = col + 1;
+                    basemap[col][row]._id =  col + 1;
                     if(col == 0 || col == 3){
-                        strcpy(basemap[row][col].name ,"bR"); 
+                        strcpy(basemap[col][row].name ,"bR"); 
                     }
                     else if(col == 1){   
-                        strcpy(basemap[row][col].name ,"bQ"); 
+                        strcpy(basemap[col][row].name ,"bQ"); 
                     }
                     else if(col == 2){ 
-                        strcpy(basemap[row][col].name ,"bK"); 
+                        strcpy(basemap[col][row].name ,"bK"); 
                     }
                 }
             //if row >= 2
             } else {
-                basemap[row][col].isWhite = true;
+                basemap[col][row].isWhite = true;
                 //pawns
                 if(row == 2) {
-                    basemap[row][col]._id = 0; 
-                    strcpy(basemap[row][col].name ,"wP"); 
+                    basemap[col][row]._id = 0; 
+                    strcpy(basemap[col][row].name ,"wP"); 
                 } else {
-                    basemap[row][col]._id = col + 1;
+                    basemap[col][row]._id = col + 1;
                     if(col == 0 || col == 3)
-                        strcpy(basemap[row][col].name ,"wR"); 
+                        strcpy(basemap[col][row].name ,"wR"); 
                     else if(col == 1)
-                        strcpy(basemap[row][col].name ,"wQ"); 
+                        strcpy(basemap[col][row].name ,"wQ"); 
                     else if(col == 2)
-                        strcpy(basemap[row][col].name ,"wK"); 
+                        strcpy(basemap[col][row].name ,"wK"); 
                 }
             }
-            Coordinates currCoords = {row, col};
-            basemap[row][col].coords = currCoords;
-            basemap[row][col].isEmpty = false; 
+            Coordinates currCoords = {col, row};
+            basemap[col][row].coords = currCoords;
+            basemap[col][row].isEmpty = false; 
         }
     }
 }
@@ -1002,7 +1003,7 @@ int main(){
     while(1){
         //insert what to draw on the screen here
 		clear_screen();
-        //draw_board();
+        draw_board();
 		for(int x = 0; x < 4; x++){
             for(int y = 0; y < 4; y++){
             draw_piece((basemap[x][y]), x, y); 
