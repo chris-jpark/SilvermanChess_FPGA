@@ -16,7 +16,7 @@ void enable_A9_interrupts(void);
  *pressed
  * on the LED display.
  ********************************************************************************/
-// int main(void) {
+int main(void) {
 //     disable_A9_interrupts(); // disable interrupts in the A9 processor
 //     set_A9_IRQ_stack();
 //     config_GIC();
@@ -27,7 +27,7 @@ void enable_A9_interrupts(void);
 //     enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
 //     while (1)
 //         continue;
-// }
+}
 
 /* setup the KEY interrupts in the FPGA */
 void config_KEYs() {
