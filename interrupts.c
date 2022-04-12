@@ -16,7 +16,7 @@ void enable_A9_interrupts(void);
  *pressed
  * on the LED display.
  ********************************************************************************/
-int main(void) {
+// int main(void) {
 //     disable_A9_interrupts(); // disable interrupts in the A9 processor
 //     set_A9_IRQ_stack();
 //     config_GIC();
