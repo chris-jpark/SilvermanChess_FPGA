@@ -4,5 +4,7 @@
 ## How the Game Works
 You start as white. The chess pieces can move in the same manner as traditional chess, but the game ends not in checkmate, but when the king is 'taken'. 
 
-Taking user input through mouse clicks, displaying pieces onto 320 X 240 VGA Output. 
-Must be Compiled using the Intel Quartus Prime. 
+## How it was built
+Written using C language, with inline ARM assembly for accessing interrupts. 
+Takes user input through mouse clicks, displays board onto the 320 X 240 VGA Output. 
+Must be Compiled using the Intel Quartus Prime compiler. 
