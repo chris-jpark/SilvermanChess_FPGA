@@ -1,10 +1,9 @@
 #include "address_map_arm.h"
-#include "tools.h"
-#include "images.c"
+#include  "tools.h"
 
 Piece basemap[4][4];
 
-//draw pixel by pixel
+//draw pixel by pixelxww
 void plot_pixel(int x, int y, short int line_color)
 {
     *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
@@ -84,7 +83,7 @@ void draw_piece(Piece currPiece, int a, int b){
     }
 }
 
-main(){
+int main(){
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
      *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the
                                         // back buffer
@@ -98,7 +97,7 @@ main(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
     clear_screen(); // pixel_buffer_start points to the pixel buffer
 
-    makeBoard(basemap); 
+    makeBoard(); 
 
     while(1){
         //insert what to draw on the screen here
