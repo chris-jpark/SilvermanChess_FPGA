@@ -41,6 +41,7 @@ typedef struct mapSpot{
 mapSpot basemap[4][4];
 Pair startPos; 
 Pair endPos; 
+bool whiteTurn = true; 
 
 void makeBoard() {
     for(int col = 0; col < BOARD_DIMENSION; col++) {
@@ -206,7 +207,7 @@ void possibleMoves(){
 	}
 }
 
-void moveMade(){
+bool moveMade(){
 	mapSpot startSpot = basemap[startPos.first][startPos.second];
 	if (startSpot.isEmpty == true) return; 
 
@@ -222,26 +223,32 @@ void moveMade(){
 			endSpot.piece = selectedPiece; 
 			endSpot.isEmpty = false; 
 
-			break; 
+			return true; 
 		}
 	}
+    return false; 
 }
 
 
 int main(){
-	printf("the program has started");
+	printf("the program has started\n");
 
 	makeBoard(basemap);
 
     while(1){
-        //insert what to draw on the screen here
-        
-		for(int x = 0; x < 4; x++){
-            for(int y = 0; y < 4; y++){
-            draw_piece((basemap[x][y].piece), x, y); 
-            }
-        }
-        
+        possibleMoves(); 
+        int move; 
+        scanf("\nInput the next move: %d", move);
+        startPos.first = (move / 1000) % 10; 
+        startPos.second = (move / 100) % 10;
+        endPos.first = (move / 10) % 10; 
+        endPos.second = move % 10; 
+        bool validMove = moveMade(); 
+        if(!validMove)
+            printf("\n please enter a valid move");
+        else
+            whiteTurn = !whiteTurn; 
+
     } 
 	return 0;
 }
