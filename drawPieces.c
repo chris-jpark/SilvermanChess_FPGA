@@ -1153,22 +1153,22 @@ void draw_piece(Piece currPiece, int a, int b){
     }
 }
 
-Piece getPiece(Coordinates coords, const Piece **basemap) {
-    float gridParam = RESOLUTION_Y/BOARD_DIMENSION;
+// Piece getPiece(Coordinates coords, const Piece **basemap) {
+//     float gridParam = RESOLUTION_Y/BOARD_DIMENSION;
 
-    Piece invalidClick;
+//     Piece invalidClick;
 
-    if((coords.x - OFFSET)> RESOLUTION_X || coords.y > RESOLUTION_Y || (coords.x - OFFSET) < 0 || coords.y < 0) {
-        invalidClick.isEmpty = true;
-        return invalidClick;
-    }
+//     if((coords.x - OFFSET)> RESOLUTION_X || coords.y > RESOLUTION_Y || (coords.x - OFFSET) < 0 || coords.y < 0) {
+//         invalidClick.isEmpty = true;
+//         return invalidClick;
+//     }
 
-    int xIndex = coords.x/gridParam;
-    int yIndex = coords.y/gridParam;
+//     int xIndex = coords.x/gridParam;
+//     int yIndex = coords.y/gridParam;
 
-    return basemap[xIndex][yIndex];
+//     return basemap[xIndex][yIndex];
 
-}
+// }
 
 void makeBoard() {
     for(int col = 0; col < BOARD_DIMENSION; col++) {
@@ -1346,9 +1346,13 @@ void moveMade(){
 	for(int i = 0; i < 16; i++){
 		if(endSpot.possMoves[i] == pieceType){
 			legalMove == true; 
+			startSpot.isEmpty = true; 
+			endSpot.piece = selectedPiece; 
+			endSpot.isEmpty = false; 
+
+			break; 
 		}
 	}
-
 }
 
 
@@ -1390,7 +1394,7 @@ int main(){
         draw_board();
 		for(int x = 0; x < 4; x++){
             for(int y = 0; y < 4; y++){
-            draw_piece((basemap[x][y]), x, y); 
+            draw_piece((basemap[x][y].piece), x, y); 
             }
         }
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
