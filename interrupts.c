@@ -27,7 +27,7 @@ void enable_A9_interrupts(void);
 //     enable_A9_interrupts(); // enable interrupts in the A9 processor while (1) // wait for an interrupt
 //     while (1)
 //         continue;
-}
+// }
 
 /* setup the KEY interrupts in the FPGA */
 void config_KEYs() {
@@ -38,6 +38,7 @@ void config_KEYs() {
 
 void config_PS2() {
     volatile int * PS2_ptr = (int*) PS2_BASE;
+    *PS2_ptr = 0xF4;
     *(PS2_ptr + 1) = 0x1;
 }
 
@@ -172,11 +173,40 @@ void pushbutton_ISR(void){
     else //press & 0x8, which is key3
         HEX_bits   = 0b01001111; 
     *HEX3_HEX0_ptr = HEX_bits;
+
+    printf("HIHIHHHHI");
     return;
 }
 
 void mouse_ISR(void){
-    volatile int * KEY_ptr = (int * ) PS2_BASE;
+    // volatile int * KEY_ptr = (int * ) PS2_BASE;
+    volatile int * PS2_ptr = (int *) 0xFF200100;  // PS/2 port address
+
+    volatile unsigned char byte1 = 0;
+	volatile unsigned char byte2 = 0;
+	volatile unsigned char byte3 = 0;
+
+	int PS2_data, RVALID;
+    int RAVAIL = 1;
+
+	while (RAVAIL != 0x00000000) {
+		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port
+		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
+        RAVAIL = (PS2_data & 0xFFFF0000);
+		if (RVALID != 0) {
+			/* always save the last three bytes received */
+			byte1 = byte2;
+			byte2 = byte3;
+			byte3 = PS2_data & 0xFF;
+
+            printf("Bytes: %c %c %c \n\n\n", byte1, byte2, byte3);
+		}
+		if ( (byte2 == 0xAA) && (byte3 == 0x00) )
+		{
+			// mouse inserted; initialize sending of data
+			*(PS2_ptr) = 0xF4;
+		}
+    }
     
     return;
 }
