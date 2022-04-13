@@ -1033,8 +1033,12 @@ void mouse_ISR(void){
 
 	int PS2_data, PS2_control, RVALID, RI;
     int RAVAIL = 1;
+	int counter = 0;
 
+	volatile unsigned char b2 = byte2;
+	volatile unsigned char b3 = byte3;
 
+	printf("An interrupt was triggered \n");
 
 
 	while(RAVAIL > 0x00000000) {
@@ -1042,20 +1046,35 @@ void mouse_ISR(void){
 		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port	// read the Data register in the PS/2 port
 
 		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
-        RAVAIL = (PS2_data & 0xFFFF0000) >> 16;
-		// printf("\nRAVAIL: %d\n", RAVAIL);
 
 		// if (RVALID) {
 			/* always save the last three bytes received */
-			byte1 = byte2;
-			byte2 = byte3;
-			byte3 = PS2_data & 0xFF;
+			counter++;
+			byte1 = b2;
+			b2 = b3;
+			b3 = PS2_data & 0xFF;
 		// }
 		if ( (byte2 == 0xAA) && (byte3 == 0x00) )
 		{
 			// mouse inserted; initialize sending of data
 			*(PS2_ptr) = 0xF4;
 		}
+
+		if(counter == 3) {
+			if((PS2_data & 0x20) == 0x20) {
+				b3 = b3 + (0x1 << 8);
+				byte3 -= b3;
+			} else
+				byte3 += b3;
+
+			if((PS2_data & 0x10) == 0x10) {
+				b2 = b2 + (0x1 << 8);
+				byte2 -= b2;
+			} else
+				byte2 += b2;
+		}
+		RAVAIL = (PS2_data & 0xFFFF0000) >> 16;
+		printf("\nRAVAIL: %d\n", RAVAIL);
     }
 
 	PS2_control = *(PS2_ptr + 1);	// read the Data register in the PS/2 port
@@ -1068,8 +1087,8 @@ void mouse_ISR(void){
 		
 
 
-	if(RVALID && ((byte1 & 0x1) == 0x1))
-		printf("Bytes: %x %x %x \n\n\n", byte1, byte2, byte3);
+	// if(RVALID && ((byte1 & 0x1) == 0x1))
+		printf("Bytes: %x %d %d \n\n\n", byte1, byte2, byte3);
 
     // if((byte1 & 0x1) == 0x1)
 
