@@ -80,14 +80,15 @@ cumbersomely merged in this file for quick testing.
 #include <stdbool.h>
 #include <inttypes.h>
 #include <string.h>
+#include <math.h> 
 
 
 volatile int pixel_buffer_start; // global variable
 
-struct pair {
+typedef struct pair {
     int first;
     int second;
-};
+}Pair;
 
 typedef struct Coordinates{
     int x;
@@ -98,11 +99,20 @@ typedef struct Piece{
     int _id;
     bool isWhite; 
     char name[2];
-    bool isEmpty;
-    Coordinates coords; 
+   // Coordinates coords; 
 } Piece;
 
-Piece basemap[4][4];
+typedef struct mapSpot{
+	Piece piece;
+	int possMoves[16]; 
+	bool isEmpty;
+} mapSpot;
+
+mapSpot basemap[4][4];
+Pair startPos; 
+Pair endPos; 
+
+
 
 
 const uint16_t board[240][320] = {
@@ -954,46 +964,184 @@ void makeBoard() {
     for(int col = 0; col < BOARD_DIMENSION; col++) {
         for(int row = 0; row < BOARD_DIMENSION; row++) {
             if(row < 2) {
-                basemap[col][row].isWhite = false;
+                basemap[col][row].piece.isWhite = false;
                 //pawns
                 if(row == 1) {
-                    basemap[col][row]._id = 0; 
-                    strcpy(basemap[col][row].name, "bP"); //strcpy( a, "foo" );
+                    basemap[col][row].piece._id = 0; 
+                    strcpy(basemap[col][row].piece.name, "bP"); //strcpy( a, "foo" );
                 } else {
-                    basemap[col][row]._id =  col + 1;
+                    basemap[col][row].piece._id =  col + 1;
                     if(col == 0 || col == 3){
-                        strcpy(basemap[col][row].name ,"bR"); 
+                        strcpy(basemap[col][row].piece.name ,"bR"); 
                     }
                     else if(col == 1){   
-                        strcpy(basemap[col][row].name ,"bQ"); 
+                        strcpy(basemap[col][row].piece.name ,"bQ"); 
                     }
                     else if(col == 2){ 
-                        strcpy(basemap[col][row].name ,"bK"); 
+                        strcpy(basemap[col][row].piece.name ,"bK"); 
                     }
                 }
             //if row >= 2
             } else {
-                basemap[col][row].isWhite = true;
+                basemap[col][row].piece.isWhite = true;
                 //pawns
                 if(row == 2) {
-                    basemap[col][row]._id = 0; 
-                    strcpy(basemap[col][row].name ,"wP"); 
+                    basemap[col][row].piece._id = 0; 
+                    strcpy(basemap[col][row].piece.name ,"wP"); 
                 } else {
-                    basemap[col][row]._id = col + 1;
+                    basemap[col][row].piece._id = col + 1;
                     if(col == 0 || col == 3)
-                        strcpy(basemap[col][row].name ,"wR"); 
+                        strcpy(basemap[col][row].piece.name ,"wR"); 
                     else if(col == 1)
-                        strcpy(basemap[col][row].name ,"wQ"); 
+                        strcpy(basemap[col][row].piece.name ,"wQ"); 
                     else if(col == 2)
-                        strcpy(basemap[col][row].name ,"wK"); 
+                        strcpy(basemap[col][row].piece.name ,"wK"); 
                 }
             }
             Coordinates currCoords = {col, row};
-            basemap[col][row].coords = currCoords;
+            //basemap[col][row]. = currCoords;
             basemap[col][row].isEmpty = false; 
         }
     }
 }
+
+void appendMove(int col, int row, int pieceType){
+	for(int i=0; i < 16; i++){
+		if(basemap[col][row].possMoves[i] <= 0){
+			basemap[col][row].possMoves[i] = pieceType;
+			return;
+		}
+	}
+}
+void possibleMoves(){
+    for(int col = 0; col < BOARD_DIMENSION; col++) {
+        for(int row = 0; row < BOARD_DIMENSION; row++) {
+			Piece currPiece = basemap[col][row].piece;
+			int pieceType = (currPiece._id +1) * (currPiece.isWhite + 1);
+			//if piece is a pawn
+			if(pieceType % 4 == 1){
+				//move up or down depending on the piece color
+				int temprow = row + (2 * currPiece.isWhite - 1);
+				if(temprow >= 0 && temprow < BOARD_DIMENSION){
+					if(basemap[col][temprow].isEmpty){
+						appendMove(col, temprow, pieceType);
+					}
+					//llook right
+					int tempcol = col + 1; 
+					if(!(basemap[tempcol][temprow].isEmpty) && 
+					basemap[tempcol][temprow].piece.isWhite != currPiece.isWhite &&
+					tempcol < BOARD_DIMENSION)
+						appendMove(tempcol, temprow, pieceType);
+					//lookleft
+					tempcol = col - 1; 
+					if(!(basemap[tempcol][temprow].isEmpty) && 
+					basemap[tempcol][temprow].piece.isWhite != currPiece.isWhite && 
+					tempcol >= 0)
+						appendMove(tempcol, temprow, pieceType);	
+				}
+			}
+			//IF PIECE IS A ROOK
+			if(pieceType % 4 == 2){
+				int temprow = row + 1; 
+				while (temprow < BOARD_DIMENSION){
+					if (basemap[col][temprow].isEmpty)
+						appendMove(col, temprow, pieceType); 
+					else if(basemap[col][temprow].piece.isWhite != currPiece.isWhite){
+						appendMove(col, temprow, pieceType);
+						break;
+					}
+					temprow += 1;
+				}
+				int temprow = row -1; 
+				while (temprow >= 0){
+					if (basemap[col][temprow].isEmpty)
+						appendMove(col, temprow, pieceType); 
+					else if(basemap[col][temprow].piece.isWhite != currPiece.isWhite){
+						appendMove(col, temprow, pieceType);
+						break;
+					}
+					temprow-=1;
+				}
+				
+				int tempcol = col + 1; 
+				while (tempcol < BOARD_DIMENSION){
+					if (basemap[tempcol][row].isEmpty)
+						appendMove(tempcol, row, pieceType); 
+					else if(basemap[tempcol][row].piece.isWhite != currPiece.isWhite){
+						appendMove(tempcol, row, pieceType);
+						break;
+					}
+					tempcol += 1;
+				}
+				int tempcol = col -1; 
+				while (tempcol >= 0){
+					if (basemap[tempcol][row].isEmpty)
+						appendMove(tempcol, row, pieceType); 
+					else if(basemap[tempcol][row].piece.isWhite != currPiece.isWhite){
+						appendMove(tempcol, row, pieceType);
+						break;
+					}
+					tempcol-=1;
+				}
+			}
+			//IF PIECE IS A QUEEN
+			if(pieceType % 4 == 3){
+				//look in all 8 directions
+				for(int i = 0; i < 8; i++){
+					int temprow = row + round(sin(i*3.14/4));
+					int tempcol = col + round(cos(i*3.14/4)); 
+					while(temprow >= 0 && tempcol >=0  && tempcol < BOARD_DIMENSION && temprow < BOARD_DIMENSION){
+						if (basemap[tempcol][temprow].isEmpty)
+							appendMove(tempcol, temprow, pieceType); 
+						else if(basemap[tempcol][temprow].piece.isWhite != currPiece.isWhite){
+							appendMove(tempcol, temprow, pieceType);
+							break;
+
+						}
+						temprow += round(sin(i*3.14/4));
+						tempcol += round(cos(i*3.14/4)); 
+					}
+				}
+			}
+
+			//IF PIECE IS A King
+			if(pieceType % 4 == 0){
+				//look in all 8 directions
+				for(int i = 0; i < 8; i++){
+					int temprow = row + round(sin(i*3.14/4));
+					int tempcol = col + round(cos(i*3.14/4)); 
+					if(temprow >= 0 && tempcol >=0  && tempcol < BOARD_DIMENSION && temprow < BOARD_DIMENSION){
+						if (basemap[tempcol][temprow].isEmpty)
+							appendMove(tempcol, temprow, pieceType); 
+						else if(basemap[tempcol][temprow].piece.isWhite != currPiece.isWhite){
+							appendMove(tempcol, temprow, pieceType);
+						}
+					}
+				}
+			}
+
+		}
+	}
+}
+
+void moveMade(){
+	mapSpot startSpot = basemap[startPos.first][startPos.second];
+	if (startSpot.isEmpty == true) return; 
+
+	Piece selectedPiece = startSpot.piece; 
+	int pieceType = (selectedPiece._id +1) * (selectedPiece.isWhite + 1);
+
+	bool legalMove; 
+	mapSpot endSpot = basemap[endPos.first][endPos.second]; 
+	for(int i = 0; i < 16; i++){
+		if(endSpot.possMoves[i] == pieceType){
+			legalMove == true; 
+		}
+	}
+
+}
+
+
 int main(){
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
      *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the
