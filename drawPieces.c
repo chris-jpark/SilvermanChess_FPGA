@@ -1418,7 +1418,7 @@ int main(){
         }
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
-    }
+    } 
 	return 0;
 }
 
