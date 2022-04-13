@@ -1,8 +1,8 @@
-#ifndef TOOLS_H
-#define TOOLS_H 
+#pragma once
 
 #include <stdbool.h>
 #include "images.c"
+#include <string.h>
 
 #define PAWN = 0
 #define ROOK = 1
@@ -38,6 +38,4 @@ typedef struct Piece{
 
 Piece getPiece(Coordinates coords, const Piece **gameBoard);
 
-void makeBoard(Piece **gameBoard);
-
-#endif
+void makeBoard();

@@ -1,4 +1,7 @@
-/* This files provides address values that exist in the system */
+/* This file is a tester - for using an online compiler when the hardware is inaccessible 
+The online compiler cannot do multiple file compilation, and so all files are
+cumbersomely merged in this file for quick testing.
+### NOT NEEDED FOR PROJECT COMPILATION ###*/
 
 #define BOARD                 "DE1-SoC"
 
