@@ -84,14 +84,17 @@ cumbersomely merged in this file for quick testing.
 #include <math.h> 
 #include <stdlib.h>
 
-volatile int byte1;
-volatile int byte2;
-volatile int byte3;
+volatile unsigned char byte1;
+volatile unsigned char byte2;
+volatile unsigned char byte3;
+
+int x;
+int y;
 
 
 void pushbutton_ISR(void);
 void config_interrupt(int, int);
-void mouse_ISR(void);
+void keyboard_ISR(void);
 
 volatile int pixel_buffer_start; // global variable
 
@@ -103,6 +106,7 @@ typedef struct pair {
 typedef struct Coordinates{
     int x;
     int y;
+	bool isInit;
 } Coordinates;
 
 typedef struct Piece{
@@ -127,6 +131,8 @@ bool whiteTurn;
 bool whiteWin;
 bool blackWin;
 
+Coordinates org;
+Coordinates dest;
 
 
 const uint16_t board[240][320] = {
@@ -1527,7 +1533,7 @@ void __attribute__((interrupt)) __cs3_isr_irq(void) {
     if (interrupt_ID == 73) // check if interrupt is from the KEYs 
         pushbutton_ISR();
     else if (interrupt_ID == 79)
-        mouse_ISR();
+        keyboard_ISR();
    	else
         while (1); // if unexpected, then stay here
     // Write to the End of Interrupt Register (ICCEOIR)
@@ -1646,16 +1652,16 @@ void pushbutton_ISR(void){
     return;
 }
 
-void mouse_ISR(void){
+void keyboard_ISR(void){
     // volatile int * KEY_ptr = (int * ) PS2_BASE;
     volatile int * PS2_ptr = (int *) 0xFF200100;  // PS/2 port address
 
-	int PS2_data, PS2_control, RVALID, RI;
+	int PS2_data, PS2_control, RI;
     int RAVAIL = 1;
 	int counter = 0;
 
-	volatile int b2 = byte2;
-	volatile int b3 = byte3;
+	volatile unsigned char b2 = byte2;
+	volatile unsigned char b3 = byte3;
 
 	printf("An interrupt was triggered \n");
 
@@ -1664,36 +1670,18 @@ void mouse_ISR(void){
 
 		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port	// read the Data register in the PS/2 port
 
-		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
+		counter++;
+		byte1 = byte2;
+		byte2 = byte3;
+		byte3 = PS2_data & 0xFF;
 
-		// if (RVALID) {
-			/* always save the last three bytes received */
-			counter++;
-			byte1 = b2;
-			b2 = b3;
-			b3 = PS2_data & 0xFF;
-		// }
 		if ( (byte2 == 0xAA) && (byte3 == 0x00) )
 		{
 			// mouse inserted; initialize sending of data
 			*(PS2_ptr) = 0xF4;
 		}
 
-		if(counter == 3) {
-			b3 = ~(b3 + ((PS2_data & 0x20) << 3)) + 1;
-			if((PS2_data & 0x20) == 0x20) {
-				byte3 -= b3;
-			} else {
-				byte3 += b3;
-			}
-				
-			b2 = ~(b2 + ((PS2_data & 0x10) << 4)) + 1;
-			if((PS2_data & 0x10) == 0x10) {
-				byte2 -= b2;
-			} else
-				byte2 += b2;
-
-		}
+		
 		RAVAIL = (PS2_data & 0xFFFF0000) >> 16;
 		printf("\nRAVAIL: %d\n", RAVAIL);
     }
@@ -1704,11 +1692,37 @@ void mouse_ISR(void){
 	if(RI == 0x1) {
 		return;
 	}
+
+	printf("Bytes: %x %x %x", byte1, byte2, byte3);
+
+	if(byte1 == 0xE0 && byte2 == 0xF0) {
+		if(byte3 == 0x75) {
+			if(y < 3) y += 1;
+		} else if(byte3 == 0x6B) {
+			if(x > 0) x -= 1;
+		} else if(byte3 == 0x72) {
+			if(y > 0) y -= 1;
+		} else if(byte3 == 0x74) {
+			if(x < 3) x += 1;
+		}
+	} else if(byte1 == 0x5A && byte2 == 0xF0){
+		if(!org.isInit) {
+			org.isInit = true;
+			org.x = x;
+			org.y = y;
+		} else {
+			dest.isInit = true;
+			dest.x = x;
+			dest.y = y;
+		}
+	}
 		
 
 
 	// if(RVALID && ((byte1 & 0x1) == 0x1))
-		printf("Bytes: %x %d %d \n\n\n", byte1, byte2, byte3);
+	printf("\norg: \nx: %d\ny: %d\n\n\n", org.x, org.y);
+	printf("dest: \nx: %d\ny: %d\n\n\n", dest.x, dest.y);
+
 
     // if((byte1 & 0x1) == 0x1)
 
@@ -2077,6 +2091,17 @@ int main(){
 	byte1 = 0;
 	byte2 = 0;
 	byte3 = 0;
+
+	x = 0;
+	y = 0;
+
+	org.x = -1;
+	org.y = -1;
+	org.isInit = false;
+
+	dest.x = -1;
+	dest.y = -1;
+	dest.isInit = false;
 
 
 	disable_A9_interrupts(); // disable interrupts in the A9 processor
