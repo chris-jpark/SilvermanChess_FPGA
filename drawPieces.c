@@ -1880,6 +1880,7 @@ void makeBoard() {
            // Coordinates currCoords = {col, row};
             //basemap[col][row]. = currCoords;
             basemap[col][row].isEmpty = false; 
+			basemap[col][row].piece.uniqueID = col * 10 + row+1; 
         }
     }
 	cursor.first = 0;
@@ -2122,8 +2123,11 @@ int main(){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
     clear_screen(); // pixel_buffer_start points to the pixel buffer
 	makeBoard();
+	whiteTurn = true; 
 
     while(1){
+		clearMoves();
+		possibleMoves();
         //insert what to draw on the screen here
 		// printf("Byte2: %d  Byte3: %d", byte2, byte3);
 		if(whiteWin || blackWin) {
@@ -2136,7 +2140,7 @@ int main(){
         draw_board();
 		selBoxDraw(cursor.first, cursor.second); 
 		printf("cursor x: %d, cursor y: %d\n", cursor.first, cursor.second);
-		clearMoves();
+		
 		if(org.y != -1) selectedBoxDraw(org.x, org.y);
 		int x, y;
 		for(x = 0; x < 4; x++){
