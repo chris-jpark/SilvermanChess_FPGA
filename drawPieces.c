@@ -1888,6 +1888,17 @@ void makeBoard() {
 	startPos.second = -1; 
 	endPos.first = -1; 
 	endPos.second = -1; 
+	byte1 = 0;
+	byte2 = 0;
+	byte3 = 0;
+
+	org.x = -1;
+	org.y = -1;
+	org.isInit = false;
+
+	dest.x = -1;
+	dest.y = -1;
+	dest.isInit = false;
 }
 
 void appendMove(int col, int row, int pieceType){
@@ -2085,20 +2096,7 @@ void enterPressed(){
 
 int main(){
 	printf("the program has started");
-	byte1 = 0;
-	byte2 = 0;
-	byte3 = 0;
 
-	x = 0;
-	y = 0;
-
-	org.x = -1;
-	org.y = -1;
-	org.isInit = false;
-
-	dest.x = -1;
-	dest.y = -1;
-	dest.isInit = false;
 
 
 	disable_A9_interrupts(); // disable interrupts in the A9 processor
@@ -2124,7 +2122,7 @@ int main(){
     *(pixel_ctrl_ptr + 1) = 0xC0000000;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
     clear_screen(); // pixel_buffer_start points to the pixel buffer
-	makeBoard(basemap);
+	makeBoard();
 
     while(1){
         //insert what to draw on the screen here
@@ -2136,6 +2134,7 @@ int main(){
 		clear_screen();
         draw_board();
 		selBoxDraw(cursor.first, cursor.second); 
+		printf("cursor x: %d, cursor y: %d\n", cursor.first, cursor.second);
 		clearMoves();
 		if(startPos.second != -1) selectedBoxDraw(startPos.first, startPos.second);
 		int x, y;
@@ -2146,8 +2145,15 @@ int main(){
         }
 		//insert way to fill start & end positions
 		bool validMove = false;
-		//if enter key is pressed
+		if(org.isInit && dest.isInit){
 			validMove = moveMade(); 
+			org.x = -1;
+			dest.x = -1;
+			org.y = -1;
+			dest.y = -1;
+			org.isInit = false; 
+			dest.isInit = false; 
+		}
 		if(validMove){ 
 			whiteTurn = !whiteTurn;
 			endPos.first = -1; 
