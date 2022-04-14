@@ -1831,7 +1831,7 @@ void selectedBoxDraw(int a, int b){
 	int x, y;
     for( x  = 0; x < 60; x++){
         for( y = 0; y < 60; y++){
-			 if(bKing[x][y] != 65535)
+			 if(greenSelBox[x][y] != 65535)
                 plot_pixel(a*60+y+OFFSET, b*60+x, greenSelBox[x][y]);
 		}
 	}
@@ -2042,14 +2042,13 @@ void possibleMoves(){
 
 bool moveMade(){
 	//mapSpot startSpot = basemap[startPos.first][startPos.second];
-	if(startPos.first == -1 || endPos.first == -1) return false; 
+	if(org.x == -1 || org.y == -1) return false; 
 
-	startPos.first = cursor.first; 
-	startPos.second = cursor.second; 
-	if (basemap[startPos.first][startPos.second].isEmpty == true) return false; 
-    if (basemap[startPos.first][startPos.second].piece.isWhite != whiteTurn) return false; 
 
-	Piece selectedPiece = basemap[startPos.first][startPos.second].piece; 
+	if (basemap[org.x][org.y].isEmpty == true) return false; 
+    if (basemap[org.x][org.y].piece.isWhite != whiteTurn) return false; 
+
+	Piece selectedPiece = basemap[org.x][org.y].piece; 
     printf("Selected Piece: %s\n", selectedPiece.name);
 	//int pieceType = (selectedPiece._id +1) * (selectedPiece.isWhite + 1);
 
@@ -2058,11 +2057,11 @@ bool moveMade(){
 	int i;
 	for( i = 0; i < 16; i++){
        // printf("Start Piece Num %d, End Piece Num %d\n", pieceType, endSpot.possMoves[i]);
-		if( basemap[endPos.first][endPos.second].possMoves[i] == selectedPiece.uniqueID){
+		if( basemap[dest.x][dest.y].possMoves[i] == selectedPiece.uniqueID){
 			legalMove = true; 
 
-			basemap[startPos.first][startPos.second].isEmpty = true; 
-            Piece endPiece = basemap[endPos.first][endPos.second].piece; 
+			basemap[org.x][org.y].isEmpty = true; 
+            Piece endPiece = basemap[dest.x][dest.y].piece; 
             if(endPiece._id == 3){
                 printf("GAME OVER!\n");
                 if(endPiece.isWhite) whiteWin = true;
@@ -2070,8 +2069,8 @@ bool moveMade(){
                
             }
 
-			basemap[endPos.first][endPos.second].piece = selectedPiece; 
-			basemap[endPos.first][endPos.second].isEmpty = false; 
+			basemap[dest.x][dest.y].piece = selectedPiece; 
+			basemap[dest.x][dest.y].isEmpty = false; 
 
 
 
@@ -2129,6 +2128,8 @@ int main(){
 		// printf("Byte2: %d  Byte3: %d", byte2, byte3);
 		if(whiteWin || blackWin) {
 			draw_winScreen(); 
+			wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
 			continue;
 		}
 		clear_screen();
@@ -2136,11 +2137,12 @@ int main(){
 		selBoxDraw(cursor.first, cursor.second); 
 		printf("cursor x: %d, cursor y: %d\n", cursor.first, cursor.second);
 		clearMoves();
-		if(startPos.second != -1) selectedBoxDraw(startPos.first, startPos.second);
+		if(org.y != -1) selectedBoxDraw(org.x, org.y);
 		int x, y;
 		for(x = 0; x < 4; x++){
             for(y = 0; y < 4; y++){
-            draw_piece((basemap[x][y].piece), x, y); 
+				if (!basemap[x][y].isEmpty)
+            		draw_piece((basemap[x][y].piece), x, y); 
             }
         }
 		//insert way to fill start & end positions
@@ -2156,10 +2158,10 @@ int main(){
 		}
 		if(validMove){ 
 			whiteTurn = !whiteTurn;
-			endPos.first = -1; 
-			endPos.second = -1;
-			startPos.first = -1; 
-			startPos.second = -1; 
+			dest.x = -1; 
+			dest.y = -1;
+			org.x = -1; 
+			org.y = -1; 
 		} 
 
 
