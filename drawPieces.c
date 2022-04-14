@@ -1694,23 +1694,23 @@ void keyboard_ISR(void){
 
 	if(byte1 == 0xE0 && byte2 == 0xF0) {
 		if(byte3 == 0x75) {
-			if(cursor.first < 3) cursor.first += 1;
-		} else if(byte3 == 0x6B) {
 			if(cursor.second > 0) cursor.second -= 1;
-		} else if(byte3 == 0x72) {
+		} else if(byte3 == 0x6B) {
 			if(cursor.first > 0) cursor.first -= 1;
-		} else if(byte3 == 0x74) {
+		} else if(byte3 == 0x72) {
 			if(cursor.second < 3) cursor.second += 1;
+		} else if(byte3 == 0x74) {
+			if(cursor.first < 3) cursor.first += 1;
 		}
 	} else if(byte1 == 0x5A && byte2 == 0xF0){
 		if(!org.isInit) {
 			org.isInit = true;
-			org.x = cursor.second;
-			org.y = cursor.first;
+			org.x = cursor.first;
+			org.y = cursor.second;
 		} else {
 			dest.isInit = true;
-			dest.x = cursor.second;
-			dest.y = cursor.first;
+			dest.x = cursor.first;
+			dest.y = cursor.second;
 		}
 	}
 		
