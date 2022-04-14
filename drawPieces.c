@@ -88,9 +88,6 @@ volatile unsigned char byte1;
 volatile unsigned char byte2;
 volatile unsigned char byte3;
 
-int x;
-int y;
-
 
 void pushbutton_ISR(void);
 void config_interrupt(int, int);
@@ -1660,8 +1657,8 @@ void keyboard_ISR(void){
     int RAVAIL = 1;
 	int counter = 0;
 
-	volatile unsigned char b2 = byte2;
-	volatile unsigned char b3 = byte3;
+	// volatile unsigned char b2 = byte2;
+	// volatile unsigned char b3 = byte3;
 
 	printf("An interrupt was triggered \n");
 
@@ -1697,23 +1694,23 @@ void keyboard_ISR(void){
 
 	if(byte1 == 0xE0 && byte2 == 0xF0) {
 		if(byte3 == 0x75) {
-			if(y < 3) y += 1;
+			if(cursor.first < 3) cursor.first += 1;
 		} else if(byte3 == 0x6B) {
-			if(x > 0) x -= 1;
+			if(cursor.second > 0) cursor.second -= 1;
 		} else if(byte3 == 0x72) {
-			if(y > 0) y -= 1;
+			if(cursor.first > 0) cursor.first -= 1;
 		} else if(byte3 == 0x74) {
-			if(x < 3) x += 1;
+			if(cursor.second < 3) cursor.second += 1;
 		}
 	} else if(byte1 == 0x5A && byte2 == 0xF0){
 		if(!org.isInit) {
 			org.isInit = true;
-			org.x = x;
-			org.y = y;
+			org.x = cursor.second;
+			org.y = cursor.first;
 		} else {
 			dest.isInit = true;
-			dest.x = x;
-			dest.y = y;
+			dest.x = cursor.second;
+			dest.y = cursor.first;
 		}
 	}
 		
