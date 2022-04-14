@@ -83,9 +83,9 @@ cumbersomely merged in this file for quick testing.
 #include <string.h>
 #include <math.h> 
 
-volatile unsigned char byte1;
-volatile unsigned char byte2;
-volatile unsigned char byte3;
+volatile int byte1;
+volatile int byte2;
+volatile int byte3;
 
 
 void pushbutton_ISR(void);
@@ -1035,8 +1035,8 @@ void mouse_ISR(void){
     int RAVAIL = 1;
 	int counter = 0;
 
-	volatile unsigned char b2 = byte2;
-	volatile unsigned char b3 = byte3;
+	volatile int b2 = byte2;
+	volatile int b3 = byte3;
 
 	printf("An interrupt was triggered \n");
 
@@ -1061,17 +1061,19 @@ void mouse_ISR(void){
 		}
 
 		if(counter == 3) {
+			b3 = ~(b3 + ((PS2_data & 0x20) << 3)) + 1;
 			if((PS2_data & 0x20) == 0x20) {
-				b3 = b3 + (0x1 << 8);
 				byte3 -= b3;
-			} else
+			} else {
 				byte3 += b3;
-
+			}
+				
+			b2 = ~(b2 + ((PS2_data & 0x10) << 4)) + 1;
 			if((PS2_data & 0x10) == 0x10) {
-				b2 = b2 + (0x1 << 8);
 				byte2 -= b2;
 			} else
 				byte2 += b2;
+
 		}
 		RAVAIL = (PS2_data & 0xFFFF0000) >> 16;
 		printf("\nRAVAIL: %d\n", RAVAIL);
@@ -1409,6 +1411,7 @@ int main(){
 
     while(1){
         //insert what to draw on the screen here
+		printf("Byte2: %d  Byte3: %d", byte2, byte3);
 		clear_screen();
         draw_board();
 		for(int x = 0; x < 4; x++){
