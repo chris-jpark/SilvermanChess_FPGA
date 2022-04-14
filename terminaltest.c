@@ -28,7 +28,7 @@ typedef struct Coordinates{
 typedef struct Piece{
     int _id;
     bool isWhite; 
-    char name[2];
+    char name[3];
    // Coordinates coords; 
 } Piece;
 
@@ -46,14 +46,20 @@ bool whiteTurn = true;
 void makeBoard() {
     for(int col = 0; col < BOARD_DIMENSION; col++) {
         for(int row = 0; row < BOARD_DIMENSION; row++) {
+            printf("col: %d row: %d\n", col, row);
+           // Piece *currPiece = &basemap[col][row].piece; 
             if(row < 2) {
+                
                 basemap[col][row].piece.isWhite = false;
+                printf("here!");
                 //pawns
                 if(row == 1) {
                     basemap[col][row].piece._id = 0; 
-                    strcpy(basemap[col][row].piece.name, "bP"); //strcpy( a, "foo" );
+                    strcpy(basemap[col][row].piece.name, "bP");
                 } else {
+                   
                     basemap[col][row].piece._id =  col + 1;
+                    
                     if(col == 0 || col == 3){
                         strcpy(basemap[col][row].piece.name ,"bR"); 
                     }
@@ -64,8 +70,10 @@ void makeBoard() {
                         strcpy(basemap[col][row].piece.name ,"bK"); 
                     }
                 }
+            
             //if row >= 2
             } else {
+              //  printf("ch1\n");
                 basemap[col][row].piece.isWhite = true;
                 //pawns
                 if(row == 2) {
@@ -81,8 +89,9 @@ void makeBoard() {
                         strcpy(basemap[col][row].piece.name ,"wK"); 
                 }
             }
-            Coordinates currCoords = {col, row};
-            //basemap[col][row]. = currCoords;
+           // Coordinates currCoords = {col, row};
+            //basemap[co1l][row]. = currCoords;
+            
             basemap[col][row].isEmpty = false; 
         }
     }
@@ -96,11 +105,18 @@ void appendMove(int col, int row, int pieceType){
 		}
 	}
 }
+void clearMoves(){
+    for(int col; col <4; col++){
+        for(int row; row<4; row++){
+            memset(basemap[col][row].possMoves, 0, sizeof basemap[col][row].possMoves); 
+        }
+    }
+}
 void possibleMoves(){
     for(int col = 0; col < BOARD_DIMENSION; col++) {
         for(int row = 0; row < BOARD_DIMENSION; row++) {
 			Piece currPiece = basemap[col][row].piece;
-			int pieceType = (currPiece._id +1) * (currPiece.isWhite + 1);
+			int pieceType = (currPiece._id  + 1) + (currPiece.isWhite * 4);
 			//if piece is a pawn
 			if(pieceType % 4 == 1){
 				//move up or down depending on the piece color
@@ -135,7 +151,7 @@ void possibleMoves(){
 					}
 					temprow += 1;
 				}
-				int temprow = row -1; 
+				temprow = row -1; 
 				while (temprow >= 0){
 					if (basemap[col][temprow].isEmpty)
 						appendMove(col, temprow, pieceType); 
@@ -156,7 +172,7 @@ void possibleMoves(){
 					}
 					tempcol += 1;
 				}
-				int tempcol = col -1; 
+				tempcol = col -1; 
 				while (tempcol >= 0){
 					if (basemap[tempcol][row].isEmpty)
 						appendMove(tempcol, row, pieceType); 
@@ -208,46 +224,73 @@ void possibleMoves(){
 }
 
 bool moveMade(){
-	mapSpot startSpot = basemap[startPos.first][startPos.second];
-	if (startSpot.isEmpty == true) return; 
+	//mapSpot startSpot = basemap[startPos.first][startPos.second];
+	if (basemap[startPos.first][startPos.second].isEmpty == true) return false; 
 
-	Piece selectedPiece = startSpot.piece; 
+	Piece selectedPiece = basemap[startPos.first][startPos.second].piece; 
+    printf("Selected Piece: %s\n", selectedPiece.name);
 	int pieceType = (selectedPiece._id +1) * (selectedPiece.isWhite + 1);
 
 	bool legalMove; 
-	mapSpot endSpot = basemap[endPos.first][endPos.second]; 
+	//mapSpot endSpot = basemap[endPos.first][endPos.second]; 
 	for(int i = 0; i < 16; i++){
-		if(endSpot.possMoves[i] == pieceType){
-			legalMove == true; 
-			startSpot.isEmpty = true; 
-			endSpot.piece = selectedPiece; 
-			endSpot.isEmpty = false; 
+       // printf("Start Piece Num %d, End Piece Num %d\n", pieceType, endSpot.possMoves[i]);
+		if( basemap[endPos.first][endPos.second].possMoves[i] == pieceType){
+			legalMove = true; 
 
-			return true; 
+			basemap[startPos.first][startPos.second].isEmpty = true; 
+			basemap[endPos.first][endPos.second].piece = selectedPiece; 
+			basemap[endPos.first][endPos.second].isEmpty = false; 
+
+            printf("Valid Move\n");
+
 		}
 	}
-    return false; 
+    if(legalMove)return true; 
+    else return false;
 }
 
+void drawMap(){
+    printf("--------------\n");
+    for(int i = 0; i < BOARD_DIMENSION; i++){
+        for(int j = 0; j < BOARD_DIMENSION; j++){
+            printf("|"); 
+            if(basemap[j][i].isEmpty == false)
+                printf("%s", basemap[j][i].piece.name); 
+            else 
+                printf("--");
+            
+        }
+        printf("|\n");
+    }
+    printf("--------------\n");
 
+}
 int main(){
 	printf("the program has started\n");
 
-	makeBoard(basemap);
+	makeBoard();
 
     while(1){
+        drawMap(); 
         possibleMoves(); 
         int move; 
-        scanf("\nInput the next move: %d", move);
+        printf("Please input next move:\n");
+        scanf("%d", &move);
+        printf("%d", move); 
         startPos.first = (move / 1000) % 10; 
         startPos.second = (move / 100) % 10;
-        endPos.first = (move / 10) % 10; 
+        endPos.first = (move / 10) % 10;
         endPos.second = move % 10; 
         bool validMove = moveMade(); 
-        if(!validMove)
-            printf("\n please enter a valid move");
-        else
+        if(validMove == false)
+            printf("\nInvalid Move\n");
+        else{
             whiteTurn = !whiteTurn; 
+            printf("\nValid Move\n");
+        }
+        
+        clearMoves();
 
     } 
 	return 0;
