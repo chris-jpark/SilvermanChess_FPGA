@@ -1660,7 +1660,7 @@ void keyboard_ISR(void){
 	// volatile unsigned char b2 = byte2;
 	// volatile unsigned char b3 = byte3;
 
-	printf("An interrupt was triggered \n");
+	// printf("An interrupt was triggered \n");
 
 
 	while(RAVAIL > 0x00000000) {
@@ -1680,7 +1680,7 @@ void keyboard_ISR(void){
 
 		
 		RAVAIL = (PS2_data & 0xFFFF0000) >> 16;
-		printf("\nRAVAIL: %d\n", RAVAIL);
+		// printf("\nRAVAIL: %d\n", RAVAIL);
     }
 
 	PS2_control = *(PS2_ptr + 1);	// read the Data register in the PS/2 port
@@ -1690,7 +1690,7 @@ void keyboard_ISR(void){
 		return;
 	}
 
-	printf("Bytes: %x %x %x", byte1, byte2, byte3);
+	// printf("Bytes: %x %x %x", byte1, byte2, byte3);
 
 	if(byte1 == 0xE0 && byte2 == 0xF0) {
 		if(byte3 == 0x75) {
@@ -1717,8 +1717,8 @@ void keyboard_ISR(void){
 
 
 	// if(RVALID && ((byte1 & 0x1) == 0x1))
-	printf("\norg: \nx: %d\ny: %d\n\n\n", org.x, org.y);
-	printf("dest: \nx: %d\ny: %d\n\n\n", dest.x, dest.y);
+	// printf("\norg: \nx: %d\ny: %d\n\n\n", org.x, org.y);
+	// printf("dest: \nx: %d\ny: %d\n\n\n", dest.x, dest.y);
 
 
     // if((byte1 & 0x1) == 0x1)
