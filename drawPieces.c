@@ -1428,7 +1428,7 @@ int main(){
 
     while(1){
         //insert what to draw on the screen here
-		printf("Byte2: %d  Byte3: %d", byte2, byte3);
+		// printf("Byte2: %d  Byte3: %d", byte2, byte3);
 		clear_screen();
         draw_board();
 		clearMoves();
