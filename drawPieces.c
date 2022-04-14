@@ -2053,7 +2053,7 @@ bool moveMade(){
     printf("Selected Piece: %s\n", selectedPiece.name);
 	//int pieceType = (selectedPiece._id +1) * (selectedPiece.isWhite + 1);
 
-	bool legalMove; 
+	bool legalMove = false; 
 	//mapSpot endSpot = basemap[endPos.first][endPos.second]; 
 	int i;
 	for( i = 0; i < 16; i++){
@@ -2065,8 +2065,8 @@ bool moveMade(){
             Piece endPiece = basemap[dest.x][dest.y].piece; 
             if(endPiece._id == 3){
                 printf("GAME OVER!\n");
-                if(endPiece.isWhite) whiteWin = true;
-                else blackWin = true;
+                if(endPiece.isWhite) blackWin = true;
+                else whiteWin = true;
                
             }
 
@@ -2082,18 +2082,6 @@ bool moveMade(){
     if(legalMove)return true; 
     else return false;
 }
-
-void enterPressed(){
-	if(startPos.first == -1){
-		startPos.first = cursor.first;
-		startPos.second = cursor.second;
-	}  else if	(endPos.first == -1){
-		endPos.first = cursor.first;
-		endPos.second = cursor.second; 
-	}	
-
-}
-
 int main(){
 	printf("the program has started");
 
@@ -2126,6 +2114,7 @@ int main(){
 	whiteTurn = true; 
 
     while(1){
+		printf("White's turn? %d\n", whiteTurn);
 		clearMoves();
 		possibleMoves();
         //insert what to draw on the screen here
@@ -2162,12 +2151,8 @@ int main(){
 		}
 		if(validMove){ 
 			whiteTurn = !whiteTurn;
-			dest.x = -1; 
-			dest.y = -1;
-			org.x = -1; 
-			org.y = -1; 
 		} 
-
+		else if (!validMove) whiteTurn = whiteTurn; 
 
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
