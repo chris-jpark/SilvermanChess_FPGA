@@ -11,7 +11,7 @@ The game ends not in checkmate, but when the king is 'taken'.
 ## How it was built
 Written using C language, with inline ARM assembly for accessing interrupts. 
 
-Takes user input through mouse clicks, displays board onto the 320 X 240 VGA Output. 
+Takes user input through keyboard arrow keys, displays board onto the 320 X 240 VGA Output. 
 
 Must be Compiled using the Intel Quartus Prime compiler. 
 
